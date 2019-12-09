@@ -140,5 +140,38 @@ for(i in 2:ncol(data_no_S5COND)){
   print(adf.test(TS_LogDiff))
 }
 
-
 # -------------------------------------------------------------------------------------------
+# APPEND Diff_Log of data into dataset, and run lm model 
+data$Y_DiffLog <- c(0,diff(log(data$Y)))
+data$S5UTIL_DiffLog <- c(0,diff(log(data$S5UTIL)))
+data$S5CONS_DiffLog <- c(0,diff(log(data$S5CONS)))
+data$S5COND_dIFFLog <- c(0,diff(log(data$S5COND)))
+data$GoldPrice_DiffLog <- c(0,diff(log(data$GoldPrice)))
+data$TreasuryBill3m_DiffLog <- c(0,diff(log(data$TreasuryBill3m)))
+data$MortgageRate30y_DiffLog <- c(0,diff(log(data$MortgageRate30y)))
+data$UnemploymentRate_DiffLog <- c(0,diff(log(data$UnemploymentRate)))
+data$PPI.Petroleum_DiffLog <- c(0,diff(log(data$PPI.Petroleum)))
+data$PPI.Lumber_DiffLog <- c(0,diff(log(data$PPI.Lumber)))
+data$PPI.Machinery_DiffLog <- c(0,diff(log(data$PPI.Machinery)))
+data$PPI.Tranportation_DiffLog <- c(0,diff(log(data$PPI.Tranportation)))
+data$GovernmentBond_DiffLog <- c(0,diff(log(data$GovernmentBond)))
+data$CPI_DiffLog <- c(0,diff(log(data$CPI)))
+data$FederalDebt_DiffLog <- c(0,diff(log(data$FederalDebt)))
+adf.test(data$PPI.Lumber_DiffLog)
+# -------------------------------------------------------------------------------------------
+
+reg1a <- lm(data$Y_DiffLog ~ ., data[,17:31])
+summary(reg1a)
+
+reg_all <- regsubsets(data$Y_DiffLog ~ ., data = data[,17:31], method=c("forward"))
+regall_coef <- names(coef(reg_all, scale="adjr2",5))[-1] #get best variables without intercept
+print(paste("selected variables:",list(regall_coef)))
+
+reg2a <- lm(data$Y_DiffLog ~ data$S5UTIL_DiffLog + data$S5CONS_DiffLog + data$S5COND_dIFFLog + 
+              data$UnemploymentRate_DiffLog + data$GoldPrice_DiffLog, data = data[,17:31])
+summary(reg2a)
+
+reg1b <- lm(data$Y_DiffLog ~ data$UnemploymentRate_DiffLog + data$GoldPrice_DiffLog, data = data[,17:31])
+summary(reg1b)
+# -------------------------------------------------------------------------------------------
+
