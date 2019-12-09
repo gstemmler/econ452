@@ -6,6 +6,7 @@
 library(xts)
 library(zoo)
 library(dplyr)
+library(tseries)
 library(leaps)
 # -------------------------------------------------------------------------------------------
 # LOAD and CLEAN DATA
@@ -103,3 +104,41 @@ xts.df <- data.frame(merge(MortgageRate.365,unemployment.365, join='left') %>%
 # Manually combined all data into merged.csv
 data <- read.csv("ers/merged.csv", header = TRUE, stringsAsFactors = FALSE)
 data <- data[1:4968,]
+colnames(data) <- c("date","Y","S5UTIL","S5CONS","S5COND","GoldPrice","TreasuryBill3m","MortgageRate30y",
+                    "UnemploymentRate","PPI.Petroleum","PPI.Lumber","PPI.Tranportation","PPI.Machinery",
+                    "GovernmentBond","CPI","FederalDebt")
+
+# -------------------------------------------------------------------------------------------
+# STATIONARITY OF DATA
+#TsNames <- list()
+#for(i in 1:ncol(data)) { 
+#  variable_name <- paste(colnames(data[i]), "ts" ,sep = ".")
+#  TsNames[[i]] <- variable_name
+#}
+#TsList = list()
+
+## Adf test 
+# S5COND had
+data_no_S5COND <- data[,-5]
+for(i in 2:ncol(data_no_S5COND)){
+    print(colnames(data_no_S5COND[i]))
+    TS = ts(data_no_S5COND[,i], start = c(2000,1),frequency = 252.75)
+    print(adf.test(TS))
+}
+
+## Adf test of loged variables
+for(i in 2:ncol(data_no_S5COND)){
+  print(colnames(data_no_S5COND[i]))
+  TS_Log = ts(log(data_no_S5COND[,i]), start = c(2000,1),frequency = 252.75)
+  print(adf.test(TS_Log))
+}
+
+## Adf test of diff of log
+for(i in 2:ncol(data_no_S5COND)){
+  print(colnames(data_no_S5COND[i]))
+  TS_LogDiff = ts(diff(log(data_no_S5COND[,i])), start = c(2000,1),frequency = 252.75)
+  print(adf.test(TS_LogDiff))
+}
+
+
+# -------------------------------------------------------------------------------------------
