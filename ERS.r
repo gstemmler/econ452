@@ -175,3 +175,88 @@ reg1b <- lm(data$Y_DiffLog ~ data$UnemploymentRate_DiffLog + data$GoldPrice_Diff
 summary(reg1b)
 # -------------------------------------------------------------------------------------------
 
+
+filename <- "/Users/poochiestemmler/Documents/Econ452/ERSDailyDataset.csv"
+data.daily <- read.csv(filename)
+
+library(tseries)
+library(forecast)
+library(zoo)
+library(xts)
+library(hydroTSM)
+library(wktmo)
+
+
+data.daily[,1] <- as.Date(data.daily[,1],format= "%m/%d/%Y")
+data.daily.ts <- ts(data.daily, start= c(2000,1,3), end = c(2019,10,28), frequency = 260)
+plot(data.daily.ts[,2])
+
+adf.test(data.daily.ts[,2], k=12)
+adf.test(diff(data.daily.ts[,2]), k=12)
+
+adf.test(diff(data.daily[,3], k=12))
+
+acf(diff(data.daily.ts[,2]))
+pacf(diff(data.daily.ts[,2]))
+
+arima.best <- auto.arima(diff(data.daily.ts[,2]))
+summary(arima.best)
+
+acf(arima.best$residuals)
+pacf(arima.best$residuals)
+                              
+                              
+                              
+                            
+######################Transfrom daily to monthly data##############################
+                              
+                              
+data.mothly <- daily2monthly(data.daily.ts, FUN=mean, na.rm=T)
+data.mothly.ts <- ts(data.mothly, start = c(2000,1), end = c(2019,9), frequency = 12)
+
+adf.test(data.mothly.ts[,1], k=12)
+adf.test(diff(data.mothly.ts[,1], k=12))
+adf.test(diff(data.mothly.ts[,2], k=12))
+adf.test(diff(data.mothly.ts[,3], k=12))
+
+
+
+
+######################Transform Weekley to Monthly###################
+filename <- "/Users/poochiestemmler/Documents/Econ452/ERSWeekleyDataset.csv"
+data.weekly <- read.csv(filename)
+data.weekly <- data.matrix(data.weekly)
+
+data.weekly.to.monthly <- weekToMonth(data.weekly, year = 2000,wkIndex = 1, wkMethod = "ISO")
+data.weekly.to.monthly <- data.weekly.to.monthly[-c(238:239),]
+data.weekly.to.monthly <- data.weekly.to.monthly[,-1]
+
+
+
+
+
+######################Transform Quarterly to Monthly###################
+filename <- "/Users/poochiestemmler/Documents/Econ452/ERSQuarterlyDataset.csv"
+data.quarterly <- read.csv(filename)
+data.quarterly.to.monthly <- data.frame()
+
+
+
+######################Add other montlhy data###################
+filename <- "/Users/poochiestemmler/Documents/Econ452/ERSMonthlyDataset.csv"
+data.mothly2 <- read.csv(filename)
+data.mothly2 <- data.mothly2[-238,]
+data.mothly <- cbind(data.mothly,data.mothly2, data.weekly.to.monthly)
+                              
+data.monthly.ts <- ts(data.mothly, start=c(2000,1), end=c(2019,9), frequency = 12)
+                              
+reg1 <- lm(data.monthly.ts[,1]~data.monthly.ts[,2]+data.monthly.ts[,3]+data.monthly.ts[,4])
+summary(reg1)
+                              
+reg2 <- lm(diff(data.monthly.ts[,1])~diff(data.monthly.ts[,2]))
+summary(reg2)
+                              
+adf.test(data.monthly.ts[,1])
+adf.test(diff(data.monthly.ts[,1]))
+
+
